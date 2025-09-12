@@ -20,25 +20,12 @@ const VocabularySchema = yup.object({
   body: yup.object({
     word: yup.string().required(),
     meaning: yup.string().required(),
-    word_type: yup
-      .string()
-      .oneOf([
-        "danh từ",
-        "động từ",
-        "tính từ い",
-        "tính từ な",
-        "trạng từ",
-        "trợ từ",
-        "trợ động từ",
-        "định từ",
-        "liên từ",
-        "thán từ",
-      ])
-      .required(),
+    word_type: yup.string().required(),
     phonetic: yup.string().required(),
+    inforMore: yup.string(),
     created_at: yup.date().default(() => new Date()),
     example: yup.string().required(),
-    userId: yup.string().required(),
+    userId: yup.string(),
   }),
 });
 
@@ -56,7 +43,6 @@ const ProgressSchema = yup.object({
     updated_at: yup.date().default(() => new Date()),
   }),
 });
-
 
 module.exports = {
   AuthSchema,
