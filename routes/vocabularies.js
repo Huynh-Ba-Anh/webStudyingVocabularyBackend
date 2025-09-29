@@ -8,12 +8,12 @@ const { VocabularySchema } = require("../validations/schema.yup");
 
 /* GET home page. */
 router.get(
-  "/:id",
+  "/",
   authenticateToken,
   authorizeRoles("user"),
   async function (req, res, next) {
     try {
-      const UserId = req.params.id;
+      const UserId = req.user.id;
       const vocabulariesList = await Vocabulary.find({ userId: UserId })
         .populate("userId")
         .sort({ created_at: -1 });
@@ -40,7 +40,16 @@ router.post(
       });
 
       await vocabulary.save();
-      res.status(201).json(vocabulary);
+
+      // Tạo progress tự động cho user với status "new"
+      const progress = new Progress({
+        user_id: req.user.id,
+        vocabulary_id: vocabulary._id,
+        status: "new", // mặc định
+      });
+      await progress.save();
+
+      res.status(201).json({ vocabulary, progress });
     } catch (err) {
       console.error("Error adding vocabulary:", err);
       res.status(500).send("Internal Server Error");
