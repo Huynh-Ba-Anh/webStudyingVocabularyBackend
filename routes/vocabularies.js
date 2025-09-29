@@ -27,34 +27,24 @@ router.get(
 );
 
 //Add vocabulary
-const mongoose = require("mongoose");
-
 router.post(
   "/",
   authenticateToken,
   validateSchema(VocabularySchema),
   async function (req, res, next) {
     try {
-      // tạo vocabulary
+      // gắn userId từ token
+      console.log("User ID from token:", req.user.id);
       const vocabulary = new Vocabulary({
         ...req.body,
-        userId: req.user.id, // string từ token
+        userId: req.user.id,
       });
 
       await vocabulary.save();
-
-      // tạo progress cho user với status "new"
-      const progress = new Progress({
-        user_id: new mongoose.Types.ObjectId(req.user.id), // bắt buộc 'new'
-        vocabulary_id: vocabulary._id,
-        status: "new",
-      });
-      await progress.save();
-
-      res.status(201).json({ vocabulary, progress });
+      res.status(201).json(vocabulary);
     } catch (err) {
       console.error("Error adding vocabulary:", err);
-      res.status(500).json({ error: err.message });
+      res.status(500).send("Internal Server Error");
     }
   }
 );
