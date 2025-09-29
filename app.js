@@ -4,19 +4,13 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
-
-// Connect database to mongoose
 const mongoose = require("mongoose");
+require("dotenv").config();
+// Connect database to mongoose
 mongoose
-  .connect(
-    "mongodb+srv://DevTea:Baanh2003@studyingvocab.u7ailhs.mongodb.net/Main"
-  )
-  .then(() => {
-    console.log("✅ MongoDB Connected Successfully!");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB Connection Error:", err);
-  });
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Connected Successfully!"))
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
