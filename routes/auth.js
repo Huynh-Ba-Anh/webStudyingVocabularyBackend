@@ -25,7 +25,7 @@ router.post("/jwt", async (req, res) => {
       iat: Math.floor(Date.now() / 1000),
     };
 
-    const token = jwt.sign(payload, jwtSettings.SECRET, {
+    const accessToken = jwt.sign(payload, jwtSettings.SECRET, {
       expiresIn: jwtSettings.ACCESS_EXPIRES,
       audience: jwtSettings.AUDIENCE,
       issuer: jwtSettings.ISSUER,
@@ -39,7 +39,7 @@ router.post("/jwt", async (req, res) => {
       message: "Login success!",
       email,
       username: user.userName,
-      token,
+      accessToken,
       refreshToken,
     });
   }
