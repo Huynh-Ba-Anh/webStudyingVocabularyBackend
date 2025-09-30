@@ -2,9 +2,9 @@ var express = require("express");
 var router = express.Router();
 const Vocabulary = require("../models/Vocabularies");
 const { authenticateToken, authorizeRoles } = require("../middlewares/Auth");
-const { use, authenticate } = require("passport");
 const { validateSchema } = require("../validations/validateSchema");
 const { VocabularySchema } = require("../validations/schema.yup");
+const Progress = require("../models/Progresses");
 
 /* GET home page. */
 router.get(
@@ -39,7 +39,6 @@ router.post(
         ...req.body,
         userId: req.user.id,
       });
-
       await vocabulary.save();
       res.status(201).json(vocabulary);
     } catch (err) {

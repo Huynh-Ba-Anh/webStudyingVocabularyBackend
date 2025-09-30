@@ -32,15 +32,8 @@ const VocabularySchema = yup.object({
 const ProgressSchema = yup.object({
   body: yup.object({
     user_id: yup.string().required(),
-    vocabulary_id: yup.string().required(),
-    status: yup
-      .string()
-      .oneOf(["new", "learning", "forgotten", "mastered"])
-      .default("new"),
-    correct_count: yup.number().min(0).required(),
-    wrong_count: yup.number().min(0).required(),
-    last_studied: yup.date().default(() => new Date()),
-    updated_at: yup.date().default(() => new Date()),
+    vocabulary_id: yup.string(),
+    createdAt: yup.date().default(() => new Date()),
   }),
 });
 
