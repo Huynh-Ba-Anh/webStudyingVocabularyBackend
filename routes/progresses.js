@@ -38,9 +38,7 @@ router.post("/", authenticateToken, async function (req, res, next) {
 
     await progressDoc.save();
 
-    res
-      .status(201)
-      .json({ message: "Progress created", progress: progressDoc });
+    res.status(201).json(progressDoc);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
