@@ -63,6 +63,7 @@ router.get(
       const vocabList = progress.vocabulary_id;
 
       const exercises = creatFillExercise(vocabList);
+      console.log(exercises);
 
       // Mỗi exercise có questionId = _id của vocab
       const exercisesWithId = exercises.map((ex) => ({
