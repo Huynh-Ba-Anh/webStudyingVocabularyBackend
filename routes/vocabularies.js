@@ -7,24 +7,23 @@ const { VocabularySchema } = require("../validations/schema.yup");
 const Progress = require("../models/Progresses");
 
 /* GET home page. */
-router.get(
-  "/",
-  authenticateToken,
-  authorizeRoles("user"),
-  async function (req, res, next) {
-    try {
-      const UserId = req.user.id;
-      const vocabulariesList = await Vocabulary.find({ userId: UserId })
-        .populate("userId")
-        .sort({ created_at: -1 });
-      res.status(200).send(vocabulariesList);
-    } catch (err) {
-      res.status(200).send(vocabulariesList);
-      console.error("Error fetching vocabularies:", err);
-      res.status(500).send("Internal Server Error");
+router.get("/", authenticateToken, authorizeRoles("user"), async (req, res) => {
+  try {
+    const userId = req.user.id; // id từ JWT payload
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
+    console.log("User ID from token:", userId);
+    const vocabulariesList = await Vocabulary.find({ userId }).sort({
+      created_at: -1,
+    });
+
+    res.status(200).json(vocabulariesList);
+  } catch (err) {
+    console.error("Error fetching vocabularies:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-);
+});
 
 //Add vocabulary
 router.post(
