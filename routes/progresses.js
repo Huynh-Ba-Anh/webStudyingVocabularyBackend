@@ -72,7 +72,7 @@ router.get(
         answer: ex.answer, // backend biết, frontend không cần hiển thị answer
       }));
 
-      res.status(200).json({ exercises: exercisesWithId });
+      res.status(200).json({ exercisesWithId });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Server error" });
