@@ -63,11 +63,10 @@ router.get(
       const vocabList = progress.vocabulary_id;
 
       const exercises = creatFillExercise(vocabList);
-      console.log(exercises);
 
       // Mỗi exercise có questionId = _id của vocab
-      const exercisesWithId = exercises.map((ex) => ({
-        questionId: ex._id || ex._id?.toString(),
+      const exercisesWithId = exercises.map((ex, i) => ({
+        questionId: vocabList[i]._id.toString(), // lấy _id từ vocab gốc
         question: ex.question,
         answer: ex.answer, // backend biết, frontend không cần hiển thị answer
       }));

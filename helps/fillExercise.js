@@ -6,12 +6,14 @@ function creatFillExercise(vocab) {
   const fillExercise = [];
   viToX.forEach((item) => {
     fillExercise.push({
+      questionId: item._id.toString(), // <-- thêm ID ở đây
       question: item.meaning,
       answer: item.word,
     });
   });
   xToVi.forEach((item) => {
     fillExercise.push({
+      questionId: item._id.toString(), // <-- thêm ID ở đây
       question: item.word,
       answer: item.meaning,
     });
