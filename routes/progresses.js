@@ -13,34 +13,35 @@ router.post("/", authenticateToken, async function (req, res, next) {
   try {
     const userId = req.user.id;
 
-    // Random vocab từ new hoặc forgotten
+    // Lấy ngẫu nhiên 20 từ có status "new" hoặc "forgotten"
     const vocab = await Vocabulary.aggregate([
       {
         $match: {
-          userId: new mongoose.Types.ObjectId(userId),
+          user_id: new mongoose.Types.ObjectId(userId), // chắc chắn trường đúng
           status: { $in: ["new", "forgotten"] },
         },
       },
-      { $sample: { size: 20 } }, // lấy 20 từ
+      { $sample: { size: 20 } },
     ]);
 
-    if (!vocab.length)
+    if (!vocab.length) {
       return res
         .status(400)
         .json({ message: "Không có từ nào để tạo Progress" });
+    }
 
     const vocabIds = vocab.map((v) => v._id);
 
+    // Tạo progress mới
     const progressDoc = new Progress({
       user_id: userId,
       vocabulary_id: vocabIds,
     });
 
-    await progressDoc.save();
+    const savedProgress = await progressDoc.save();
 
-    res
-      .status(201)
-      .json({ message: "Progress created", progress: progressDoc });
+    // Trả về luôn progress đã lưu, frontend sẽ lấy được _id
+    res.status(201).json({ message: "Progress created", savedProgress });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
