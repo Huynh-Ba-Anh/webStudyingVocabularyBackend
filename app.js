@@ -21,11 +21,22 @@ var authRouter = require("./routes/auth");
 
 var app = express();
 
-// Enable CORS for all routes
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://web-studying-vocabulary-frontend.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // domain FE
-    credentials: true, // cho phép gửi cookie/token nếu cần
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
 
