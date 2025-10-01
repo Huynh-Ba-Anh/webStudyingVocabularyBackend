@@ -8,6 +8,7 @@ function normalizeString(str) {
 }
 
 function equalsIgnoreCase(userAnswer, vocabWord, vocabMeaning) {
+  if (!userAnswer || !userAnswer.trim()) return false;
   const answer = normalizeString(userAnswer);
   const word = normalizeString(vocabWord);
   const meaning = normalizeString(vocabMeaning);
