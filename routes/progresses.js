@@ -66,10 +66,11 @@ router.get(
 
       // Mỗi exercise có questionId = _id của vocab
       const exercisesWithId = exercises.map((ex, i) => ({
-        questionId: vocabList[i]._id.toString(), // lấy _id từ vocab gốc
+        questionId: exercises[i].questionId.toString(), // lấy _id từ vocab gốc
         question: ex.question,
         answer: ex.answer, // backend biết, frontend không cần hiển thị answer
       }));
+      console.log(exercisesWithId);
 
       res.status(200).json({ exercises: exercisesWithId });
     } catch (err) {
