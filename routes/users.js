@@ -17,6 +17,18 @@ router.get("/", async function (req, res, next) {
   }
 });
 
+router.get("/infor", authenticateToken, async function (req, res, next) {
+  try {
+    const userId = req.user.id;
+    const userInfo = await User.findById(userId, "-password");
+    console.log(userInfo);
+    res.status(200).send(userInfo);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 //Add users
 router.post(
   "/register",
