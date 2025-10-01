@@ -9,6 +9,7 @@ function creatFillExercise(vocab) {
       questionId: item._id.toString(), // <-- thêm ID ở đây
       question: item.meaning,
       answer: item.word,
+      answerType: "word",
     });
   });
   xToVi.forEach((item) => {
@@ -16,6 +17,7 @@ function creatFillExercise(vocab) {
       questionId: item._id.toString(), // <-- thêm ID ở đây
       question: item.word,
       answer: item.meaning,
+      answerType: "meaning",
     });
   });
   return fillExercise.sort(() => 0.5 - Math.random());
