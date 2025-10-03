@@ -85,7 +85,7 @@ router.post("/import", authenticateToken, async (req, res) => {
       errors,
     });
   } catch (error) {
-    console.error(err);
+    console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
