@@ -60,7 +60,8 @@ router.post(
   validateSchema(VocabularySchema),
   async function (req, res, next) {
     try {
-      let topicApi = req.body.topicApi;
+      let { topicApi, ...rest } = req.body;
+
       if (!topicApi) {
         const nonTopic = await Topic.findOne({ isDefault: true });
         if (!nonTopic) {
@@ -70,8 +71,8 @@ router.post(
       }
 
       const vocabulary = new Vocabulary({
+        ...rest,
         topicApi,
-        ...req.body,
         userId: req.user.id,
       });
 
