@@ -44,4 +44,48 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
+router.put("/:topicId", authenticateToken, async (req, res) => {
+  try {
+    const { topicId } = req.params;
+    const { topicName, vocabIds } = req.body;
+
+    const updatedTopic = await Topic.findByIdAndUpdate(topicId, {
+      topicName,
+      vocabIds,
+    });
+
+    if (!updatedTopic) {
+      return res.status(404).json({ error: "Không tìm thấy topic" });
+    }
+
+    res.status(200).json({
+      message: "Cập nhật topic thành công",
+      data: updatedTopic,
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật topic:", error);
+    res.status(500).json({ error: "Lỗi server khi cập nhật topic" });
+  }
+});
+
+router.delete("/:topicId", authenticateToken, async (req, res) => {
+  try {
+    const { topicId } = req.params;
+
+    const deletedTopic = await Topic.findByIdAndDelete(topicId);
+
+    if (!deletedTopic) {
+      return res.status(404).json({ error: "Không tìm thấy topic để xóa" });
+    }
+
+    res.status(200).json({
+      message: "Xóa topic thành công",
+      data: deletedTopic,
+    });
+  } catch (error) {
+    console.error("Lỗi khi xóa topic:", error);
+    res.status(500).json({ error: "Lỗi server khi xóa topic" });
+  }
+});
+
 module.exports = router;
