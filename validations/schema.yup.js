@@ -16,6 +16,17 @@ const UserSchema = yup.object({
   }),
 });
 
+const VocabularyImportSchema = yup.object({
+  word: yup.string().required("Word là bắt buộc"),
+  meaning: yup.string().required("Meaning là bắt buộc"),
+  word_type: yup.string().required("Word type là bắt buộc"),
+  phonetic: yup.string().required(),
+  inforMore: yup.string(),
+  example: yup.string().required(),
+  created_at: yup.date().default(() => new Date()),
+  userId: yup.string(),
+});
+
 const VocabularySchema = yup.object({
   body: yup.object({
     word: yup.string().required(),
@@ -42,4 +53,5 @@ module.exports = {
   UserSchema,
   VocabularySchema,
   ProgressSchema,
+  VocabularyImportSchema,
 };

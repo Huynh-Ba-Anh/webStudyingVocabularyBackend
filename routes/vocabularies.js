@@ -3,7 +3,10 @@ var router = express.Router();
 const Vocabulary = require("../models/Vocabularies");
 const { authenticateToken, authorizeRoles } = require("../middlewares/Auth");
 const { validateSchema } = require("../validations/validateSchema");
-const { VocabularySchema } = require("../validations/schema.yup");
+const {
+  VocabularySchema,
+  VocabularyImportSchema,
+} = require("../validations/schema.yup");
 const Progress = require("../models/Progresses");
 
 /* GET home page. */
@@ -46,6 +49,46 @@ router.post(
     }
   }
 );
+
+// Import vocabulary
+router.post("/import", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const vocabList = req.body;
+    if (!Array.isArray(vocabList) || vocabList.length == 0) {
+      return res.status(400).json({
+        message: "File Excel rỗng hoặc dữ liệu không hợp lệ",
+      });
+    }
+
+    const validatedVocab = [];
+    const errors = [];
+
+    for (let index = 0; index < vocabList.length; index++) {
+      try {
+        const validItem = await VocabularyImportSchema.body.validate({
+          ...vocabList[index],
+          userId,
+        });
+        validatedVocab.push(validItem);
+      } catch (error) {
+        errors.push({ row: i + 2, message: err.message });
+      }
+    }
+    if (validatedVocab.length > 0) {
+      await Vocabulary.insertMany(validatedVocab);
+    }
+    res.json({
+      message: "Import hoàn tất",
+      successCount: validatedVocab.length,
+      errorCount: errors.length,
+      errors,
+    });
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 // Update vocabulary
 router.put(
