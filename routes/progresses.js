@@ -8,12 +8,10 @@ const ExerciseHistory = require("../models/ExerciseHistory");
 const mongoose = require("mongoose");
 const { equalsIgnoreCase } = require("../helps/equalsIgnoreCase");
 
-/* Tạo Progress mới với nhiều vocab */
 router.post("/", authenticateToken, async function (req, res, next) {
   try {
     const userId = req.user.id;
 
-    // Random vocab từ new hoặc forgotten
     const vocab = await Vocabulary.aggregate([
       {
         $match: {
@@ -21,7 +19,7 @@ router.post("/", authenticateToken, async function (req, res, next) {
           status: { $in: ["new", "forgotten"] },
         },
       },
-      { $sample: { size: 20 } }, // lấy 20 từ
+      { $sample: { size: 20 } },
     ]);
 
     if (!vocab.length)
@@ -45,7 +43,6 @@ router.post("/", authenticateToken, async function (req, res, next) {
   }
 });
 
-/* Lấy bài tập từ Progress */
 router.get(
   "/fill-Exercise/:progressId",
   authenticateToken,
@@ -65,18 +62,15 @@ router.get(
         return res.status(400).json({ message: "No vocab in progress" });
       }
 
-      // Tạo exercise từ vocabList
       const exercises = creatFillExercise(vocabList);
 
-      // Lấy toàn bộ vocab của user (để chọn sai)
       const allVocab = await Vocabulary.find({ userId: userId });
 
       const exercisesWithOptions = exercises.map((ex) => {
-        // Lọc các vocab khác với đáp án đúng
         const wrongChoices = allVocab
-          .filter((v) => v.word !== ex.answer) // khác đáp án đúng
-          .sort(() => Math.random() - 0.5) // shuffle
-          .slice(0, 3); // lấy 3
+          .filter((v) => v.word !== ex.answer)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
 
         let options;
 
@@ -86,14 +80,13 @@ router.get(
           options = [ex.answer, ...wrongChoices.map((w) => w.meaning)];
         }
 
-        // Shuffle options
         const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
         return {
           questionId: ex.questionId.toString(),
           question: ex.question,
-          answer: ex.answer, // đáp án đúng backend dùng để check
-          options: shuffledOptions, // frontend hiển thị
+          answer: ex.answer,
+          options: shuffledOptions,
         };
       });
 
@@ -105,10 +98,9 @@ router.get(
   }
 );
 
-/* Submit bài tập */
 router.post("/submit/:progressId", authenticateToken, async (req, res) => {
   try {
-    const { answers } = req.body; // [{ questionId, userAnswer }]
+    const { answers } = req.body;
     const { progressId } = req.params;
     const userId = req.user.id;
 
@@ -136,8 +128,8 @@ router.post("/submit/:progressId", authenticateToken, async (req, res) => {
         equalsIgnoreCase(ans.userAnswer, vocab.word) ||
         equalsIgnoreCase(ans.userAnswer, vocab.meaning);
       return {
-        question: vocab.word, // hoặc vocab.meaning tùy kiểu bài tập
-        answer: vocab.word, // backend dùng để check, frontend không cần hiển thị
+        question: vocab.word,
+        answer: vocab.word,
         userAnswer: ans.userAnswer,
         correct: isCorrect,
         vocabulary_id: vocab._id,
@@ -146,7 +138,6 @@ router.post("/submit/:progressId", authenticateToken, async (req, res) => {
 
     const correctCount = results.filter((r) => r.correct).length;
 
-    // Lưu lịch sử
     const history = new ExerciseHistory({
       user_id: userId,
       progress_id: progressId,

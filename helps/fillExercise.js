@@ -6,7 +6,7 @@ function creatFillExercise(vocab) {
   const fillExercise = [];
   viToX.forEach((item) => {
     fillExercise.push({
-      questionId: item._id.toString(), // <-- thêm ID ở đây
+      questionId: item._id.toString(),
       question: item.meaning,
       answer: item.word,
       answerType: "word",
@@ -14,7 +14,7 @@ function creatFillExercise(vocab) {
   });
   xToVi.forEach((item) => {
     fillExercise.push({
-      questionId: item._id.toString(), // <-- thêm ID ở đây
+      questionId: item._id.toString(),
       question: item.word,
       answer: item.meaning,
       answerType: "meaning",

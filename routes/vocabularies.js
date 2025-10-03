@@ -7,12 +7,10 @@ const {
   VocabularySchema,
   VocabularyImportSchema,
 } = require("../validations/schema.yup");
-const Progress = require("../models/Progresses");
 
-/* GET home page. */
 router.get("/", authenticateToken, authorizeRoles("user"), async (req, res) => {
   try {
-    const userId = req.user.id; // id từ JWT payload
+    const userId = req.user.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -28,14 +26,12 @@ router.get("/", authenticateToken, authorizeRoles("user"), async (req, res) => {
   }
 });
 
-//Add vocabulary
 router.post(
   "/",
   authenticateToken,
   validateSchema(VocabularySchema),
   async function (req, res, next) {
     try {
-      // gắn userId từ token
       console.log("User ID from token:", req.user.id);
       const vocabulary = new Vocabulary({
         ...req.body,
@@ -50,7 +46,6 @@ router.post(
   }
 );
 
-// Import vocabulary
 router.post("/import", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -83,10 +78,6 @@ router.post("/import", authenticateToken, async (req, res) => {
       }
     }
 
-    console.log("✅ vocabList:", vocabList);
-    console.log("✅ validatedVocab:", validatedVocab);
-    console.log("❌ errors:", errors);
-
     if (validatedVocab.length > 0) {
       await Vocabulary.insertMany(validatedVocab);
     }
@@ -103,7 +94,6 @@ router.post("/import", authenticateToken, async (req, res) => {
   }
 });
 
-// Update vocabulary
 router.put(
   "/:vocabId",
   authenticateToken,
@@ -120,7 +110,6 @@ router.put(
   }
 );
 
-// Delete vocabulary
 router.delete("/:vocabId", authenticateToken, async function (req, res, next) {
   try {
     const vocabId = req.params.vocabId;

@@ -3,7 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const jwtSettings = require("../constants/jwtSettings");
 const User = require("../models/Users");
-const bcrypt = require("bcryptjs"); // <- QUAN TRỌNG
+const bcrypt = require("bcryptjs");
 
 router.post("/jwt", async (req, res) => {
   const { email, password } = req.body;
@@ -14,9 +14,7 @@ router.post("/jwt", async (req, res) => {
   }
   const isMatch = await bcrypt.compare(password, user.password);
 
-  // Demo login, thay bằng DB sau này
   if (isMatch) {
-    // Payload hợp lệ
     const payload = {
       sub: email,
       id: user.id,

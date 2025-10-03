@@ -5,7 +5,6 @@ const { validateSchema } = require("../validations/validateSchema");
 const { UserSchema } = require("../validations/schema.yup");
 const bcrypt = require("bcryptjs");
 const { authorizeRoles, authenticateToken } = require("../middlewares/Auth");
-const e = require("express");
 
 router.get("/", async function (req, res, next) {
   try {
@@ -29,7 +28,6 @@ router.get("/infor", authenticateToken, async function (req, res, next) {
   }
 });
 
-//Add users
 router.post(
   "/register",
   validateSchema(UserSchema),
@@ -48,7 +46,6 @@ router.post(
   }
 );
 
-//update user
 router.put(
   "/:id",
   authenticateToken,
@@ -58,7 +55,6 @@ router.put(
       const userId = req.params.id;
       const userFound = await User.findById(userId);
 
-      // Nếu có đổi password thì hash lại
       if (req.body.password) {
         req.body.password = await bcrypt.hash(req.body.password, 10);
       }
@@ -77,7 +73,6 @@ router.put(
             .json({ message: "Forbidden: only admin can assign admin role" });
         }
 
-        // Chỉ chính mình hoặc admin mới được update
         if (req.user.sub !== userFound.email) {
           return res
             .status(403)
@@ -94,7 +89,6 @@ router.put(
   }
 );
 
-//delete user
 router.delete(
   "/:id",
   authenticateToken,

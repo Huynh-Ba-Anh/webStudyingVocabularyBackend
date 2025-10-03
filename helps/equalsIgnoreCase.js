@@ -1,10 +1,10 @@
 function normalizeString(str) {
   if (!str) return "";
   return str
-    .trim() // loại bỏ khoảng trắng đầu/cuối
-    .toLowerCase() // viết thường
-    .normalize("NFKC") // chuẩn hóa unicode (full-width → half-width)
-    .replace(/[.,!?;:]/g, ""); // bỏ dấu câu cơ bản
+    .trim()
+    .toLowerCase()
+    .normalize("NFKC")
+    .replace(/[.,!?;:]/g, "");
 }
 
 function equalsIgnoreCase(userAnswer, vocabWord, vocabMeaning) {
