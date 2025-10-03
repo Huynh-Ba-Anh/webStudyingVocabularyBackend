@@ -69,14 +69,20 @@ router.put("/:topicId", authenticateToken, async (req, res) => {
     const { topicId } = req.params;
     const { topicName, vocabIds } = req.body;
 
-    const updatedTopic = await Topic.findByIdAndUpdate(topicId, {
-      topicName,
-      vocabIds,
-    });
-
-    if (!updatedTopic) {
+    const topic = await Topic.findById(topicId);
+    if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic" });
     }
+
+    if (topic.isDefault) {
+      return res.status(400).json({ message: "Không thể sửa chủ đề mặc định" });
+    }
+
+    const updatedTopic = await Topic.findByIdAndUpdate(
+      topicId,
+      { topicName, vocabIds },
+      { new: true }
+    );
 
     res.status(200).json({
       message: "Cập nhật topic thành công",
@@ -92,19 +98,21 @@ router.delete("/:topicId", authenticateToken, async (req, res) => {
   try {
     const { topicId } = req.params;
 
-    const deletedTopic = await Topic.findByIdAndDelete(topicId);
+    const topic = await Topic.findById(topicId);
 
-    if (!deletedTopic) {
+    if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic để xóa" });
     }
 
-    if (deletedTopic.isDefault) {
+    if (topic.isDefault) {
       return res.status(400).json({ message: "Không thể xóa chủ đề mặc định" });
     }
 
+    await Topic.findByIdAndDelete(topicId);
+
     res.status(200).json({
       message: "Xóa topic thành công",
-      data: deletedTopic,
+      data: topic,
     });
   } catch (error) {
     console.error("Lỗi khi xóa topic:", error);
