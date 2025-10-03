@@ -42,7 +42,7 @@ router.get(
 
       const vocabulariesList = await Vocabulary.find({
         userId,
-        created_at: { $lt: threeDaysAgo },
+        created_at: { $gte: threeDaysAgo },
       }).sort({ created_at: -1 });
 
       res.status(200).json(vocabulariesList);
