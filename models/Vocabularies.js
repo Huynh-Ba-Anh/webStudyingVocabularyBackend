@@ -4,22 +4,7 @@ const Schema = mongoose.Schema;
 const vocabularySchema = new Schema({
   word: { type: String, required: true },
   meaning: { type: String, required: true },
-  word_type: {
-    type: String,
-    enum: [
-      "danh từ",
-      "động từ",
-      "tính từ い",
-      "tính từ な",
-      "trạng từ",
-      "trợ từ",
-      "trợ động từ",
-      "định từ",
-      "liên từ",
-      "thán từ",
-    ],
-    required: true,
-  },
+  word_type: { type: String, required: true },
   phonetic: { type: String, required: true },
   inforMore: { type: String },
   example: { type: String, required: true },
