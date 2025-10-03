@@ -67,8 +67,14 @@ router.post("/import", authenticateToken, async (req, res) => {
 
     for (let index = 0; index < vocabList.length; index++) {
       try {
-        const validItem = await VocabularyImportSchema.body.validate({
-          ...vocabList[index],
+        const validItem = await VocabularyImportSchema.validate({
+          word: vocabList[index].Word,
+          meaning: vocabList[index].Meaning,
+          word_type: vocabList[index]["Word Type"],
+          phonetic: vocabList[index].Phonetic,
+          inforMore: vocabList[index].InforMore || "",
+          example: vocabList[index].Example,
+          created_at: new Date(),
           userId,
         });
         validatedVocab.push(validItem);
