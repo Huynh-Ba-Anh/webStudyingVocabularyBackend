@@ -43,7 +43,7 @@ router.get(
 
       const vocabulariesList = await Vocabulary.find({
         userId,
-        created_at: { $gte: threeDaysAgo },
+        created_at: { $glt: threeDaysAgo },
       }).sort({ created_at: -1 });
 
       res.status(200).json(vocabulariesList);
@@ -55,28 +55,37 @@ router.get(
 );
 
 router.post(
-  "/",
+  "/:topicId?",
   authenticateToken,
   validateSchema(VocabularySchema),
   async function (req, res, next) {
     try {
-      let { topicApi, ...rest } = req.body;
+      let topicId = req.params.topicId;
 
-      if (!topicApi) {
-        const nonTopic = await Topic.findOne({ isDefault: true });
-        if (!nonTopic) {
+      if (!topicId) {
+        const defaultTopic = await Topic.findOne({ isDefault: true });
+        if (!defaultTopic) {
           return res.status(400).json({ message: "No default topic found" });
         }
-        topicApi = nonTopic._id;
+        topicId = defaultTopic._id;
       }
-
+      console.log(topicId);
       const vocabulary = new Vocabulary({
-        ...rest,
-        topicApi,
+        ...req.body,
         userId: req.user.id,
       });
-
       await vocabulary.save();
+
+      console.log(vocabulary._id);
+
+      const topic = await Topic.findById(topicId);
+      if (topic) {
+        topic.vocabIds.push(vocabulary._id);
+        await topic.save();
+      }
+
+      console.log(topic);
+
       res.status(201).json(vocabulary);
     } catch (err) {
       console.error("Error adding vocabulary:", err);
