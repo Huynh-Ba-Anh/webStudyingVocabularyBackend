@@ -72,7 +72,7 @@ router.post("/import", authenticateToken, async (req, res) => {
         });
         validatedVocab.push(validItem);
       } catch (error) {
-        errors.push({ row: index + 2, message: err.message });
+        errors.push({ row: index + 2, message: error.message });
       }
     }
     if (validatedVocab.length > 0) {
