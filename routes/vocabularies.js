@@ -70,8 +70,8 @@ router.post(
       }
 
       const vocabulary = new Vocabulary({
-        ...req.body,
         topicApi,
+        ...req.body,
         userId: req.user.id,
       });
 
