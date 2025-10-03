@@ -16,6 +16,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var vocabulariesRouter = require("./routes/vocabularies");
 var progressesRouter = require("./routes/progresses");
+var topicsRouter = require("./routes/topics");
 var authRouter = require("./routes/auth");
 
 var app = express();
@@ -53,6 +54,7 @@ app.use("/vocabularies", vocabulariesRouter);
 app.use("/progresses", progressesRouter);
 app.use("/users", usersRouter);
 app.use("/login", authRouter);
+app.use("/topics", topicsRouter);
 
 app.use(function (req, res, next) {
   next(createError(404));

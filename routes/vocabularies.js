@@ -32,7 +32,6 @@ router.post(
   validateSchema(VocabularySchema),
   async function (req, res, next) {
     try {
-      console.log("User ID from token:", req.user.id);
       const vocabulary = new Vocabulary({
         ...req.body,
         userId: req.user.id,
