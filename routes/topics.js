@@ -16,6 +16,26 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+router.get("/:topicId", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { topicId } = req.params;
+
+    const topic = await Topic.findOne({ _id: topicId, userId }).populate(
+      "vocabIds"
+    );
+
+    if (!topic) {
+      return res.status(404).json({ error: "Không tìm thấy topic" });
+    }
+
+    res.status(200).json(topic);
+  } catch (error) {
+    console.error("Lỗi khi lấy topic:", error);
+    res.status(500).json({ error: "Lỗi server khi lấy topic" });
+  }
+});
+
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
