@@ -98,6 +98,10 @@ router.delete("/:topicId", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Không tìm thấy topic để xóa" });
     }
 
+    if (deletedTopic.isDefault) {
+      return res.status(400).json({ message: "Không thể xóa chủ đề mặc định" });
+    }
+
     res.status(200).json({
       message: "Xóa topic thành công",
       data: deletedTopic,

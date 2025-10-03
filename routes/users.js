@@ -5,6 +5,7 @@ const { validateSchema } = require("../validations/validateSchema");
 const { UserSchema } = require("../validations/schema.yup");
 const bcrypt = require("bcryptjs");
 const { authorizeRoles, authenticateToken } = require("../middlewares/Auth");
+const Topic = require("../models/Topic");
 
 router.get("/", async function (req, res, next) {
   try {
@@ -37,6 +38,11 @@ router.post(
       const hashedPassword = await bcrypt.hash(user.password, 10);
       user.password = hashedPassword;
       await user.save();
+      await Topic.create({
+        topicName: "Non-Topic",
+        userId: user._id,
+        isDefault: true,
+      });
       const { password, ...userData } = user.toObject();
       res.status(201).json(userData);
     } catch (err) {
