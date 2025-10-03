@@ -7,6 +7,7 @@ const {
   VocabularySchema,
   VocabularyImportSchema,
 } = require("../validations/schema.yup");
+const Topic = require("../models/Topic");
 
 router.get("/", authenticateToken, authorizeRoles("user"), async (req, res) => {
   try {
@@ -59,10 +60,21 @@ router.post(
   validateSchema(VocabularySchema),
   async function (req, res, next) {
     try {
+      let topicApi = req.body.topicApi;
+      if (!topicApi) {
+        const nonTopic = await Topic.findOne({ isDefault: true });
+        if (!nonTopic) {
+          return res.status(400).json({ message: "No default topic found" });
+        }
+        topicApi = nonTopic._id;
+      }
+
       const vocabulary = new Vocabulary({
         ...req.body,
+        topicApi,
         userId: req.user.id,
       });
+
       await vocabulary.save();
       res.status(201).json(vocabulary);
     } catch (err) {
