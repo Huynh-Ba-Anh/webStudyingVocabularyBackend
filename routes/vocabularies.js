@@ -55,7 +55,8 @@ router.post("/import", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const vocabList = req.body;
-    if (!Array.isArray(vocabList) || vocabList.length == 0) {
+
+    if (!Array.isArray(vocabList) || vocabList.length === 0) {
       return res.status(400).json({
         message: "File Excel rỗng hoặc dữ liệu không hợp lệ",
       });
@@ -75,9 +76,15 @@ router.post("/import", authenticateToken, async (req, res) => {
         errors.push({ row: index + 2, message: error.message });
       }
     }
+
+    console.log("✅ vocabList:", vocabList);
+    console.log("✅ validatedVocab:", validatedVocab);
+    console.log("❌ errors:", errors);
+
     if (validatedVocab.length > 0) {
       await Vocabulary.insertMany(validatedVocab);
     }
+
     res.json({
       message: "Import hoàn tất",
       successCount: validatedVocab.length,
