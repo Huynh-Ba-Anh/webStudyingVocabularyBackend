@@ -26,6 +26,33 @@ router.get("/", authenticateToken, authorizeRoles("user"), async (req, res) => {
   }
 });
 
+router.get(
+  "/newVocab",
+  authenticateToken,
+  authorizeRoles("user"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+      const vocabulariesList = await Vocabulary.find({
+        userId,
+        created_at: { $lt: threeDaysAgo },
+      }).sort({ created_at: -1 });
+
+      res.status(200).json(vocabulariesList);
+    } catch (err) {
+      console.error("Error fetching vocabularies:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 router.post(
   "/",
   authenticateToken,
