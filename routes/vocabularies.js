@@ -69,14 +69,11 @@ router.post(
         }
         topicId = defaultTopic._id;
       }
-      console.log(topicId);
       const vocabulary = new Vocabulary({
         ...req.body,
         userId: req.user.id,
       });
       await vocabulary.save();
-
-      console.log(vocabulary._id);
 
       const topic = await Topic.findById(topicId);
       if (topic) {
@@ -94,10 +91,19 @@ router.post(
   }
 );
 
-router.post("/import", authenticateToken, async (req, res) => {
+router.post("/import/:topicId?", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const vocabList = req.body;
+    let topicId = req.params.topicId;
+
+    if (!topicId) {
+      const defaultTopic = await Topic.findOne({ isDefault: true });
+      if (!defaultTopic) {
+        return res.status(400).json({ message: "No default topic found" });
+      }
+      topicId = defaultTopic._id;
+    }
 
     if (!Array.isArray(vocabList) || vocabList.length === 0) {
       return res.status(400).json({
@@ -126,13 +132,24 @@ router.post("/import", authenticateToken, async (req, res) => {
       }
     }
 
+    let insertedVocabs = [];
     if (validatedVocab.length > 0) {
-      await Vocabulary.insertMany(validatedVocab);
+      insertedVocabs = await Vocabulary.insertMany(validatedVocab);
+    }
+
+    if (topicId && insertedVocabs.length > 0) {
+      await Topic.findByIdAndUpdate(
+        topicId,
+        {
+          $addToSet: { vocabIds: { $each: insertedVocabs.map((v) => v._id) } },
+        },
+        { new: true }
+      );
     }
 
     res.json({
       message: "Import hoàn tất",
-      successCount: validatedVocab.length,
+      successCount: insertedVocabs.length,
       errorCount: errors.length,
       errors,
     });
