@@ -23,6 +23,7 @@ var app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://web-studying-vocabulary.vercel.app",
   "https://web-studying-vocabulary-frontend.vercel.app",
 ];
 
@@ -39,6 +40,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.options("*", cors());
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
