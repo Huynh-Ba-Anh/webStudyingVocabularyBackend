@@ -29,40 +29,29 @@ router.get("/infor", authenticateToken, async function (req, res, next) {
   }
 });
 
-router.post("/register", validateSchema(UserSchema), async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const user = new User({ ...req.body, password: hashedPassword });
-
-    await user.save({ session });
-
-    await Topic.create(
-      [
-        {
-          topicName: "Non-Topic",
-          userId: user._id,
-          vocabIds: [],
-          isDefault: true,
-        },
-      ],
-      { session }
-    );
-
-    await session.commitTransaction();
-    session.endSession();
-
-    const { password, ...userData } = user.toObject();
-    res.status(201).json(userData);
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Error adding user or topic:", err);
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+router.post(
+  "/register",
+  validateSchema(UserSchema),
+  async function (req, res, next) {
+    try {
+      const user = new User(req.body);
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      user.password = hashedPassword;
+      await user.save();
+      console.log(user.id);
+      await Topic.create({
+        topicName: `Non-Topic of ${user.userName}`,
+        userId: user.id,
+        isDefault: true,
+      });
+      const { password, ...userData } = user.toObject();
+      res.status(201).json(userData);
+    } catch (err) {
+      console.error("Error adding user:", err);
+      res.status(500).send("Internal Server Error");
+    }
   }
-});
+);
 
 router.put(
   "/:id",
