@@ -50,29 +50,14 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
 
-const clientBuildPath = path.join(__dirname, "public");
-app.use(express.static(clientBuildPath));
-
+app.use("/", indexRouter);
 app.use("/vocabularies", vocabulariesRouter);
 app.use("/progresses", progressesRouter);
 app.use("/users", usersRouter);
 app.use("/login", authRouter);
 app.use("/topics", topicsRouter);
-app.use("/", indexRouter);
-app.get("*", (req, res, next) => {
-  const apiPaths = [
-    "/vocabularies",
-    "/progresses",
-    "/users",
-    "/login",
-    "/topics",
-  ];
-  if (apiPaths.some((p) => req.path.startsWith(p))) {
-    return next();
-  }
-  res.sendFile(path.join(clientBuildPath, "index.html"));
-});
 
 app.use(function (req, res, next) {
   next(createError(404));
