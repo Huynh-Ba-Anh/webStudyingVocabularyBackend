@@ -29,38 +29,40 @@ router.get("/infor", authenticateToken, async function (req, res, next) {
   }
 });
 
-const session = await mongoose.startSession();
-session.startTransaction();
+router.post("/register", validateSchema(UserSchema), async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-try {
-  const hashedPassword = await bcrypt.hash(req.body.password, 10);
-  const user = new User({ ...req.body, password: hashedPassword });
+  try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const user = new User({ ...req.body, password: hashedPassword });
 
-  await user.save({ session });
+    await user.save({ session });
 
-  await Topic.create(
-    [
-      {
-        topicName: "Non-Topic",
-        userId: user._id,
-        vocabIds: [],
-        isDefault: true,
-      },
-    ],
-    { session }
-  );
+    await Topic.create(
+      [
+        {
+          topicName: "Non-Topic",
+          userId: user._id,
+          vocabIds: [],
+          isDefault: true,
+        },
+      ],
+      { session }
+    );
 
-  await session.commitTransaction();
-  session.endSession();
+    await session.commitTransaction();
+    session.endSession();
 
-  const { password, ...userData } = user.toObject();
-  res.status(201).json(userData);
-} catch (err) {
-  await session.abortTransaction();
-  session.endSession();
-  console.error("Error adding user or topic:", err);
-  res.status(500).json({ message: "Lỗi server", error: err.message });
-}
+    const { password, ...userData } = user.toObject();
+    res.status(201).json(userData);
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error adding user or topic:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+});
 
 router.put(
   "/:id",
