@@ -41,6 +41,7 @@ router.post(
       await Topic.create({
         topicName: "Non-Topic",
         userId: user._id,
+        vocabIds: [],
         isDefault: true,
       });
       const { password, ...userData } = user.toObject();
