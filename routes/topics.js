@@ -1,6 +1,7 @@
 const express = require("express");
 const { authenticateToken } = require("../middlewares/Auth");
 const Topic = require("../models/Topic");
+const Vocabulary = require("../models/Vocabularies");
 
 const router = express.Router();
 
