@@ -71,6 +71,5 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-require("./keepAlive");
 
 module.exports = app;
