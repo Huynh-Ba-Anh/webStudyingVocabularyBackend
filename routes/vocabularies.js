@@ -64,11 +64,14 @@ router.post(
 
       if (!topicId) {
         const defaultTopic = await Topic.findOne({ isDefault: true });
+        console.log(defaultTopic)
+
         if (!defaultTopic) {
           return res.status(400).json({ message: "No default topic found" });
         }
         topicId = defaultTopic._id;
       }
+      console.log("Topic ID for new vocab:", topicId);
       const vocabulary = new Vocabulary({
         ...req.body,
         userId: req.user.id,
