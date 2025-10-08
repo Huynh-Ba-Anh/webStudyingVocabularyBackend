@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 const vocabularySchema = new Schema({
   word: { type: String, required: true },
   meaning: { type: String, required: true },
-  word_type: { type: String, required: true },
-  phonetic: { type: String, required: true },
+  word_type: { type: String },
+  phonetic: { type: String },
   inforMore: { type: String },
-  example: { type: String, required: true },
+  example: { type: String },
   status: {
     type: String,
     enum: ["new", "learning", "forgotten", "mastered"],

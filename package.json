@@ -13,7 +13,6 @@
     "dotenv": "^17.2.2",
     "express": "^4.21.2",
     "http-errors": "~1.6.3",
-    "jade": "^1.9.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.18.0",
     "mongoose": "^8.18.0",
@@ -21,6 +20,7 @@
     "passport": "^0.7.0",
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
+    "pug": "^3.0.3",
     "yup": "^1.7.0"
   },
   "devDependencies": {
