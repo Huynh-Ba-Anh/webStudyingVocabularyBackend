@@ -38,13 +38,9 @@ router.get(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
       const vocabulariesList = await Vocabulary.find({
         userId,
-        created_at: { $gte: threeDaysAgo },
-      }).sort({ created_at: -1 });
+      }).sort({ created_at: -1 }).limit(10);
 
       res.status(200).json(vocabulariesList);
     } catch (err) {
