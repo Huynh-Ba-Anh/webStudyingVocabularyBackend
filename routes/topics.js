@@ -1,7 +1,6 @@
 const express = require("express");
 const { authenticateToken } = require("../middlewares/Auth");
 const Topic = require("../models/Topic");
-const Vocabulary = require("../models/Vocabularies");
 
 const router = express.Router();
 
@@ -21,41 +20,21 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { topicId } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
 
-    const topic = await Topic.findOne({ _id: topicId, userId }).populate({
-      path: "vocabIds",
-      options: {
-        skip: (page - 1) * limit,
-        limit: limit,
-      },
-    });
+    const topic = await Topic.findOne({ _id: topicId, userId }).populate(
+      "vocabIds"
+    );
 
     if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic" });
     }
 
-    const totalVocab = await Vocabulary.countDocuments({
-      _id: { $in: topic.vocabIds.map((v) => v._id) },
-    });
-
-    res.status(200).json({
-      topic,
-      totalVocab,
-      currentPage: page,
-      totalPages: Math.ceil(totalVocab / limit),
-    });
-    console.log(topic);
-    console.log(totalVocab);
-    console.log(page);
-    console.log(Math.ceil(totalVocab / limit));
+    res.status(200).json(topic);
   } catch (error) {
     console.error("Lỗi khi lấy topic:", error);
     res.status(500).json({ error: "Lỗi server khi lấy topic" });
   }
 });
-
 
 router.post("/", authenticateToken, async (req, res) => {
   try {
