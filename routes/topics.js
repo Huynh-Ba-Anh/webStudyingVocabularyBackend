@@ -1,7 +1,6 @@
 const express = require("express");
 const { authenticateToken } = require("../middlewares/Auth");
 const Topic = require("../models/Topic");
-const Vocabulary = require("../models/Vocabularies");
 
 const router = express.Router();
 
@@ -21,10 +20,12 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { topicId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
 
     const topic = await Topic.findOne({ _id: topicId, userId }).populate(
       "vocabIds"
-    );
+    ).limit(limit).skip((page - 1) * limit);
 
     if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic" });
