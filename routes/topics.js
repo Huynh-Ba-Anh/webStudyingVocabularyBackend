@@ -31,17 +31,27 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
       },
     });
 
-
     if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic" });
     }
 
-    res.status(200).json(topic);
+    const totalVocab = await Vocabulary.countDocuments({
+      _id: { $in: topic.vocabIds.map((v) => v._id) },
+    });
+
+    res.status(200).json({
+      topicName: topic.name,
+      vocabularies: topic.vocabIds,
+      totalVocab,
+      currentPage: page,
+      totalPages: Math.ceil(totalVocab / limit),
+    });
   } catch (error) {
     console.error("Lỗi khi lấy topic:", error);
     res.status(500).json({ error: "Lỗi server khi lấy topic" });
   }
 });
+
 
 router.post("/", authenticateToken, async (req, res) => {
   try {
