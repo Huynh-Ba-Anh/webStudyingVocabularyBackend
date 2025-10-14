@@ -9,16 +9,18 @@ const {
 } = require("../validations/schema.yup");
 const Topic = require("../models/Topic");
 
-router.get("/", authenticateToken, authorizeRoles("user"), async (req, res) => {
+router.get("/:page/:limit", authenticateToken, authorizeRoles("user"), async (req, res) => {
   try {
     const userId = req.user.id;
+    const page = parseInt(req.params.page) || 1;
+    const limit = parseInt(req.params.limit) || 10;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     console.log("User ID from token:", userId);
     const vocabulariesList = await Vocabulary.find({ userId }).sort({
       created_at: -1,
-    });
+    }).limit(limit).skip((page - 1) * limit);
 
     res.status(200).json(vocabulariesList);
   } catch (err) {
