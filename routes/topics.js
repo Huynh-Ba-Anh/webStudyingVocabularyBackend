@@ -46,6 +46,10 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
       currentPage: page,
       totalPages: Math.ceil(totalVocab / limit),
     });
+    console.log(topic);
+    console.log(totalVocab);
+    console.log(page);
+    console.log(Math.ceil(totalVocab / limit));
   } catch (error) {
     console.error("Lỗi khi lấy topic:", error);
     res.status(500).json({ error: "Lỗi server khi lấy topic" });
