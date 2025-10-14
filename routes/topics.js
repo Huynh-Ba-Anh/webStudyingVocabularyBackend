@@ -23,10 +23,14 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
 
-    const topic = await Topic.findOne({ _id: topicId, userId }).populate(
-      "vocabIds",
-      options = { skip: (page - 1) * limit, limit: limit }
-    );
+    const topic = await Topic.findOne({ _id: topicId, userId }).populate({
+      path: "vocabIds",
+      options: {
+        skip: (page - 1) * limit,
+        limit: limit,
+      },
+    });
+
 
     if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic" });
