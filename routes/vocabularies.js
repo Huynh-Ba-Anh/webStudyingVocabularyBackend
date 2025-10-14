@@ -13,7 +13,7 @@ router.get("/:page/:limit", authenticateToken, authorizeRoles("user"), async (re
   try {
     const userId = req.user.id;
     const page = parseInt(req.params.page) || 1;
-    const limit = parseInt(req.params.limit) || 10;
+    const limit = parseInt(req.params.limit) || 12;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -42,7 +42,7 @@ router.get(
 
       const vocabulariesList = await Vocabulary.find({
         userId,
-      }).sort({ created_at: -1 }).limit(10);
+      }).sort({ created_at: -1 }).limit(12);
 
       res.status(200).json(vocabulariesList);
     } catch (err) {
