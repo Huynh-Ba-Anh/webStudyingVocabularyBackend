@@ -43,6 +43,9 @@ app.use(
 
 app.options("*", cors());
 
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "jade");
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -61,13 +64,12 @@ app.use(function (req, res, next) {
 });
 
 app.use(function (err, req, res, next) {
-  console.error("Error handler:", err);
-  res.status(err.status || 500).json({
-    message: err.message,
-    error: process.env.NODE_ENV === "development" ? err : {},
-  });
-});
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
+  res.status(err.status || 500);
+  res.render("error");
+});
 
 
 module.exports = app;
