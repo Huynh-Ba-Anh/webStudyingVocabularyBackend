@@ -41,8 +41,7 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
     });
 
     res.status(200).json({
-      topicName: topic.name,
-      vocabularies: topic.vocabIds,
+      topic,
       totalVocab,
       currentPage: page,
       totalPages: Math.ceil(totalVocab / limit),
