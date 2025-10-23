@@ -48,6 +48,7 @@ const ProgressSchema = yup.object({
   }),
 });
 
+
 module.exports = {
   AuthSchema,
   UserSchema,

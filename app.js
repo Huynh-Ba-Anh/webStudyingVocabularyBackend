@@ -5,6 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
 const mongoose = require("mongoose");
+const resetProcessWord = require("./helps/resetProcessWord");
 require("dotenv").config();
 
 mongoose
@@ -16,6 +17,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var vocabulariesRouter = require("./routes/vocabularies");
 var progressesRouter = require("./routes/progresses");
+var historiesRouter = require("./routes/exerciseHistories");
 var topicsRouter = require("./routes/topics");
 var authRouter = require("./routes/auth");
 
@@ -43,9 +45,6 @@ app.use(
 
 app.options("*", cors());
 
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
-
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -56,20 +55,24 @@ app.use("/", indexRouter);
 app.use("/vocabularies", vocabulariesRouter);
 app.use("/progresses", progressesRouter);
 app.use("/users", usersRouter);
+app.use("/histories", historiesRouter);
 app.use("/login", authRouter);
 app.use("/topics", topicsRouter);
 
 app.use(function (req, res, next) {
   next(createError(404));
 });
-//Error handler
+
 app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  res.status(err.status || 500);
-  res.render("error");
+  res.status(err.status || 500).json({
+    message: err.message,
+    error: req.app.get("env") === "development" ? err : {},
+  });
 });
 
+resetProcessWord();
 
 module.exports = app;

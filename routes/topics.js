@@ -20,11 +20,13 @@ router.get("/:topicId", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { topicId } = req.params;
+    const status = req.query.status;
 
-    const topic = await Topic.findOne({ _id: topicId, userId }).populate(
-      "vocabIds"
-    );
-
+    const topic = await Topic.findOne({ _id: topicId, userId })
+      .populate({
+        path: "vocabIds",
+        match: status ? { status } : {},
+      });
     if (!topic) {
       return res.status(404).json({ error: "Không tìm thấy topic" });
     }

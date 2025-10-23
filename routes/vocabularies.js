@@ -9,27 +9,8 @@ const {
 } = require("../validations/schema.yup");
 const Topic = require("../models/Topic");
 
-router.get("", authenticateToken, authorizeRoles("user"), async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    console.log("User ID from token:", userId);
-    const vocabulariesList = await Vocabulary.find({ userId }).sort({
-      created_at: -1,
-    });
-
-    res.status(200).json(vocabulariesList);
-  } catch (err) {
-    console.error("Error fetching vocabularies:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
 router.get(
-  "/newVocab",
+  "",
   authenticateToken,
   authorizeRoles("user"),
   async (req, res) => {
@@ -39,11 +20,26 @@ router.get(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const vocabulariesList = await Vocabulary.find({
-        userId,
-      }).sort({ created_at: -1 }).limit(12);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-      res.status(200).json(vocabulariesList);
+      const total = await Vocabulary.countDocuments({ userId });
+
+      const vocabulariesList = await Vocabulary.find({ userId })
+        .sort({ created_at: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const totalPages = Math.ceil(total / limit);
+
+      res.status(200).json({
+        total,
+        page,
+        totalPages,
+        limit,
+        data: vocabulariesList,
+      });
     } catch (err) {
       console.error("Error fetching vocabularies:", err);
       res.status(500).json({ message: "Internal Server Error" });
@@ -51,24 +47,30 @@ router.get(
   }
 );
 
+
 router.post(
   "/:topicId?",
   authenticateToken,
   validateSchema(VocabularySchema),
-  async function (req, res, next) {
+  async function (req, res) {
     try {
       let topicId = req.params.topicId;
 
-      if (!topicId) {
-        const defaultTopic = await Topic.findOne({ isDefault: true });
-        console.log(defaultTopic)
-
-        if (!defaultTopic) {
-          return res.status(400).json({ message: "No default topic found" });
-        }
+      let defaultTopic;
+      if (topicId === "undefined") {
+        defaultTopic = await Topic.findOne({ isDefault: true, userId: req.user.id });
         topicId = defaultTopic._id;
       }
-      console.log("Topic ID for new vocab:", topicId);
+      console.log("Default Topic:", defaultTopic);
+
+
+      const existing = await Vocabulary.findOne({ word: req.body.word })
+        .collation({ locale: "en", strength: 2 });
+
+      if (existing && existing.userId.toString() === req.user.id) {
+        return res.status(400).json({ message: "Từ này đã tồn tại" });
+      }
+
       const vocabulary = new Vocabulary({
         ...req.body,
         userId: req.user.id,
@@ -76,32 +78,30 @@ router.post(
       await vocabulary.save();
 
       const topic = await Topic.findById(topicId);
-      if (topic) {
+      if (topic && !topic.vocabIds.includes(vocabulary._id)) {
         topic.vocabIds.push(vocabulary._id);
         await topic.save();
       }
 
-      console.log(topic);
-
       res.status(201).json(vocabulary);
+
     } catch (err) {
       console.error("Error adding vocabulary:", err);
-      res.status(500).send("Internal Server Error");
+      res.status(500).json({ message: "Internal Server Error" });
     }
   }
 );
+
+
 
 router.post("/import/:topicId?", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const vocabList = req.body;
     let topicId = req.params.topicId;
-
+    let defaultTopic;
     if (!topicId) {
-      const defaultTopic = await Topic.findOne({ isDefault: true });
-      if (!defaultTopic) {
-        return res.status(400).json({ message: "No default topic found" });
-      }
+      defaultTopic = await Topic.findOne({ isDefault: true, userId: req.user.id });
       topicId = defaultTopic._id;
     }
 
@@ -169,7 +169,6 @@ router.put(
       await Vocabulary.findByIdAndUpdate(vocabId, req.body, { new: true });
       res.status(200).json({ message: "Updated successfully" });
     } catch (err) {
-      console.error("Error update vocabulary:", err);
       res.status(500).send("Internal Server Error");
     }
   }
@@ -179,9 +178,29 @@ router.delete("/:vocabId", authenticateToken, async function (req, res, next) {
   try {
     const vocabId = req.params.vocabId;
     await Vocabulary.findByIdAndDelete(vocabId);
+    await Topic.updateMany(
+      { vocabIds: vocabId },
+      { $pull: { vocabIds: vocabId } }
+    );
     res.status(200).json({ message: "Deleted successfully" });
   } catch (err) {
     console.error("Error Delete vocabulary:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.get("/search", authenticateToken, async function (req, res, next) {
+  try {
+    const { query } = req.query;
+    const userId = req.user.id;
+
+    const results = await Vocabulary.fillter({
+      userId,
+      searchTerm: query
+    });
+
+    res.status(200).json(results);
+  } catch (err) {
     res.status(500).send("Internal Server Error");
   }
 });
