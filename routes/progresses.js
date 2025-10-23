@@ -7,8 +7,9 @@ const { creatFillExercise } = require("../helps/fillExercise");
 const ExerciseHistory = require("../models/ExerciseHistory");
 const mongoose = require("mongoose");
 const { equalsIgnoreCase } = require("../helps/equalsIgnoreCase");
+const e = require("express");
 
-router.post("/", authenticateToken, async function (req, res, next) {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -16,25 +17,38 @@ router.post("/", authenticateToken, async function (req, res, next) {
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
-          status: { $in: ["new", "forgotten"] },
+          status: { $in: ["forgotten", "learning", "new"] },
         },
       },
-      { $sample: { size: 20 } },
+      {
+        $addFields: {
+          priority: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$status", "forgotten"] }, then: 3 },
+                { case: { $eq: ["$status", "learning"] }, then: 2 },
+                { case: { $eq: ["$status", "new"] }, then: 1 },
+              ],
+              default: 0,
+            },
+          },
+        },
+      },
+      { $addFields: { score: { $add: ["$priority"] } } },
+      { $sort: { score: -1 } },
+      { $limit: 20 },
     ]);
 
-    if (!vocab.length)
-      return res
-        .status(400)
-        .json({ message: "Không có từ nào để tạo Progress" });
+    if (!vocab.length) {
+      return res.status(400).json({ message: "Không có từ nào để tạo Progress" });
+    }
 
     const vocabIds = vocab.map((v) => v._id);
 
-    const progressDoc = new Progress({
+    const progressDoc = await Progress.create({
       user_id: userId,
       vocabulary_id: vocabIds,
     });
-
-    await progressDoc.save();
 
     res.status(201).json(progressDoc);
   } catch (err) {
@@ -50,6 +64,7 @@ router.get(
     try {
       const userId = req.user.id;
       const progressId = req.params.progressId;
+      const typeExercise = req.query.typeExercise;
 
       const progress = await Progress.findById(progressId).populate(
         "vocabulary_id"
@@ -61,36 +76,41 @@ router.get(
       if (!vocabList.length) {
         return res.status(400).json({ message: "No vocab in progress" });
       }
+      const exercises = creatFillExercise(vocabList, type = typeExercise);
 
-      const exercises = creatFillExercise(vocabList);
+      if (typeExercise === "writing") {
+        console.log(exercises);
+        return res.status(200).json(exercises);
+      } else {
 
-      const allVocab = await Vocabulary.find({ userId: userId });
+        const allVocab = await Vocabulary.find({ userId: userId }).limit(60);
 
-      const exercisesWithOptions = exercises.map((ex) => {
-        const wrongChoices = allVocab
-          .filter((v) => v.word !== ex.answer)
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3);
+        const exercisesWithOptions = exercises.map((ex) => {
+          const wrongChoices = allVocab
+            .filter((v) => v.word !== ex.answer)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
 
-        let options;
+          let options;
 
-        if (ex.answerType == "word") {
-          options = [ex.answer, ...wrongChoices.map((w) => w.word)];
-        } else {
-          options = [ex.answer, ...wrongChoices.map((w) => w.meaning)];
-        }
+          if (ex.answerType == "word") {
+            options = [ex.answer, ...wrongChoices.map((w) => w.word)];
+          } else {
+            options = [ex.answer, ...wrongChoices.map((w) => w.meaning)];
+          }
 
-        const shuffledOptions = options.sort(() => Math.random() - 0.5);
+          const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
-        return {
-          questionId: ex.questionId.toString(),
-          question: ex.question,
-          answer: ex.answer,
-          options: shuffledOptions,
-        };
-      });
+          return {
+            questionId: ex.questionId.toString(),
+            question: ex.question,
+            answer: ex.answer,
+            options: shuffledOptions,
+          };
+        });
+        return res.status(200).json({ exercises: exercisesWithOptions });
+      }
 
-      res.status(200).json({ exercises: exercisesWithOptions });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Server error" });
@@ -125,10 +145,16 @@ router.post("/submit/:progressId", authenticateToken, async (req, res) => {
       }
 
       const isCorrect =
-        equalsIgnoreCase(ans.userAnswer, vocab.word) ||
-        equalsIgnoreCase(ans.userAnswer, vocab.meaning);
+        equalsIgnoreCase(ans.userAnswer, vocab.word, vocab.meaning);
+
+      if (isCorrect) {
+        vocab.correct_count += 1;
+      } else {
+        vocab.wrong_count += 1;
+      }
+      vocab.save();
       return {
-        question: vocab.word,
+        question: vocab.meaning,
         answer: vocab.word,
         userAnswer: ans.userAnswer,
         correct: isCorrect,
@@ -149,6 +175,41 @@ router.post("/submit/:progressId", authenticateToken, async (req, res) => {
     await history.save();
 
     res.status(200).json({ results, correctCount });
+
+    const updateResult = await Vocabulary.updateMany(
+      { _id: { $in: progress.vocabulary_id } },
+      [
+        {
+          $set: {
+            last_studied: new Date(),
+            status: {
+              $cond: [
+                { $gte: ["$correct_count", 3] },
+                "mastered",
+                {
+                  $cond: [
+                    { $eq: ["$status", "new"] },
+                    "learning",
+                    "$status"
+                  ]
+                }
+              ]
+            },
+            correct_count: {
+              $cond: [
+                { $gte: ["$correct_count", 3] },
+                0,
+                "$correct_count"
+              ]
+            }
+          }
+        }
+      ]
+    );
+
+
+    console.log("updateResult:", updateResult);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
